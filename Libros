@@ -1,0 +1,1564 @@
+<?php
+session_start();
+error_reporting(0);
+include('includes/config.php');
+if($_SESSION['alogin']!=''){
+$_SESSION['alogin']='';
+}
+if(isset($_POST['login']))
+{
+$username=$_POST['username'];
+$password=md5($_POST['password']);
+$sql ="SELECT UserName,Password FROM admin WHERE UserName=:username and Password=:password";
+$query= $dbh -> prepare($sql);
+$query-> bindParam(':username', $username, PDO::PARAM_STR);
+$query-> bindParam(':password', $password, PDO::PARAM_STR);
+$query-> execute();
+$results=$query->fetchAll(PDO::FETCH_OBJ);
+if($query->rowCount() > 0)
+{
+$_SESSION['alogin']=$_POST['username'];
+echo "<script type='text/javascript'> document.location ='admin/dashboard.php'; </script>";
+} else{
+echo "<script>alert('Invalid Details');</script>";
+}
+}
+?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>ESCUELA NORMAL RURAL "LAZARO CARDENAS DEL RIO"</title>
+    <!-- BOOTSTRAP CORE STYLE  -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONT AWESOME STYLE  -->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLE  -->
+    <link href="assets/css/style.css" rel="stylesheet" />
+    <!-- GOOGLE FONT -->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+
+</head>
+<body>
+    <!------MENU SECTION START-->
+<?php include('includes/header.php');?>
+<!-- MENU SECTION END-->
+<div class="content-wrapper">
+<div class="container">
+<div class="row pad-botm">
+<div class="col-md-12">
+<h4 class="header-line">INICIO DE SESIÓN</h4>
+</div>
+</div>
+             
+<!--LOGIN PANEL START-->           
+<div class="row">
+<div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3" >
+<div class="panel panel-info">
+<div class="panel-heading">
+ INICIO DE SESIÓN
+</div>
+<div class="panel-body">
+<form role="form" method="post">
+
+<div class="form-group">
+<label>Usuario</label>
+<input class="form-control" type="text" name="username" autocomplete="off" required />
+</div>
+<div class="form-group">
+<label>Contraseña</label>
+<input class="form-control" type="password" name="password" autocomplete="off" required />
+</div>
+
+ <button type="submit" name="login" class="btn btn-info">ACCESO </button>
+</form>
+ </div>
+</div>
+</div>
+</div>  
+<!---LOGIN PABNEL END-->            
+             
+ 
+    </div>
+    </div>
+     <!-- CONTENT-WRAPPER SECTION END-->
+ <?php include('includes/footer.php');?>
+      <!-- FOOTER SECTION END-->
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS  -->
+    <script src="assets/js/bootstrap.js"></script>
+      <!-- CUSTOM SCRIPTS  -->
+    <script src="assets/js/custom.js"></script>
+</script>
+</body>
+</html>
+
+<?php
+session_start();
+include('includes/config.php');
+error_reporting(0);
+if(strlen($_SESSION['login'])==0)
+    {   
+header('location:index.php');
+}
+else{ 
+if(isset($_POST['change']))
+  {
+$password=md5($_POST['password']);
+$newpassword=md5($_POST['newpassword']);
+$email=$_SESSION['login'];
+  $sql ="SELECT Password FROM tblstudents WHERE EmailId=:email and Password=:password";
+$query= $dbh -> prepare($sql);
+$query-> bindParam(':email', $email, PDO::PARAM_STR);
+$query-> bindParam(':password', $password, PDO::PARAM_STR);
+$query-> execute();
+$results = $query -> fetchAll(PDO::FETCH_OBJ);
+if($query -> rowCount() > 0)
+{
+$con="update tblstudents set Password=:newpassword where EmailId=:email";
+$chngpwd1 = $dbh->prepare($con);
+$chngpwd1-> bindParam(':email', $email, PDO::PARAM_STR);
+$chngpwd1-> bindParam(':newpassword', $newpassword, PDO::PARAM_STR);
+$chngpwd1->execute();
+$msg="Your Password succesfully changed";
+}
+else {
+$error="Your current password is wrong";  
+}
+}
+
+?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Online Library Management System | </title>
+    <!-- BOOTSTRAP CORE STYLE  -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONT AWESOME STYLE  -->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLE  -->
+    <link href="assets/css/style.css" rel="stylesheet" />
+    <!-- GOOGLE FONT -->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+  <style>
+    .errorWrap {
+    padding: 10px;
+    margin: 0 0 20px 0;
+    background: #fff;
+    border-left: 4px solid #dd3d36;
+    -webkit-box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+    box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+}
+.succWrap{
+    padding: 10px;
+    margin: 0 0 20px 0;
+    background: #fff;
+    border-left: 4px solid #5cb85c;
+    -webkit-box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+    box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+}
+    </style>
+</head>
+<script type="text/javascript">
+function valid()
+{
+if(document.chngpwd.newpassword.value!= document.chngpwd.confirmpassword.value)
+{
+alert("New Password and Confirm Password Field do not match  !!");
+document.chngpwd.confirmpassword.focus();
+return false;
+}
+return true;
+}
+</script>
+
+<body>
+    <!------MENU SECTION START-->
+<?php include('includes/header.php');?>
+<!-- MENU SECTION END-->
+<div class="content-wrapper">
+<div class="container">
+<div class="row pad-botm">
+<div class="col-md-12">
+<h4 class="header-line">Cambiar Contraseña
+</h4>
+</div>
+</div>
+ <?php if($error){?><div class="errorWrap"><strong>ERROR</strong>:<?php echo htmlentities($error); ?> </div><?php } 
+        else if($msg){?><div class="succWrap"><strong>SUCCESS</strong>:<?php echo htmlentities($msg); ?> </div><?php }?>            
+<!--LOGIN PANEL START-->           
+<div class="row">
+<div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3" >
+<div class="panel panel-info">
+<div class="panel-heading">
+Change Password
+</div>
+<div class="panel-body">
+<form role="form" method="post" onSubmit="return valid();" name="chngpwd">
+
+<div class="form-group">
+<label>CONTRASEÑA ACTUAL</label>
+<input class="form-control" type="password" name="password" autocomplete="off" required  />
+</div>
+
+<div class="form-group">
+<label>NUEVA CONTRASEÑA</label>
+<input class="form-control" type="password" name="newpassword" autocomplete="off" required  />
+</div>
+
+<div class="form-group">
+<label>CONFIRMAR CONTRASEÑA </label>
+<input class="form-control"  type="password" name="confirmpassword" autocomplete="off" required  />
+</div>
+
+ <button type="submit" name="change" class="btn btn-info">Chnage </button> 
+</form>
+ </div>
+</div>
+</div>
+</div>  
+<!---LOGIN PABNEL END-->            
+             
+ 
+    </div>
+    </div>
+     <!-- CONTENT-WRAPPER SECTION END-->
+ <?php include('includes/footer.php');?>
+      <!-- FOOTER SECTION END-->
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS  -->
+    <script src="assets/js/bootstrap.js"></script>
+      <!-- CUSTOM SCRIPTS  -->
+    <script src="assets/js/custom.js"></script>
+</body>
+</html>
+<?php } ?>
+
+<?php 
+require_once("includes/config.php");
+// code user email availablity
+if(!empty($_POST["emailid"])) {
+	$email= $_POST["emailid"];
+	if (filter_var($email, FILTER_VALIDATE_EMAIL)===false) {
+
+		echo "error : You did not enter a valid email.";
+	}
+	else {
+		$sql ="SELECT EmailId FROM tblstudents WHERE EmailId=:email";
+$query= $dbh -> prepare($sql);
+$query-> bindParam(':email', $email, PDO::PARAM_STR);
+$query-> execute();
+$results = $query -> fetchAll(PDO::FETCH_OBJ);
+$cnt=1;
+if($query -> rowCount() > 0)
+{
+echo "<span style='color:red'> Email already exists .</span>";
+ echo "<script>$('#submit').prop('disabled',true);</script>";
+} else{
+	
+	echo "<span style='color:green'> Email available for Registration .</span>";
+ echo "<script>$('#submit').prop('disabled',false);</script>";
+}
+}
+}
+
+
+?>
+
+<?php
+session_start();
+error_reporting(0);
+include('includes/config.php');
+if(strlen($_SESSION['login'])==0)
+  { 
+header('location:index.php');
+}
+else{?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Online Library Management System | User Dash Board</title>
+    <!-- BOOTSTRAP CORE STYLE  -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONT AWESOME STYLE  -->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLE  -->
+    <link href="assets/css/style.css" rel="stylesheet" />
+    <!-- GOOGLE FONT -->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+
+</head>
+<body>
+      <!------MENU SECTION START-->
+<?php include('includes/header.php');?>
+<!-- MENU SECTION END-->
+    <div class="content-wrapper">
+         <div class="container">
+        <div class="row pad-botm">
+            <div class="col-md-12">
+                <h4 class="header-line">Panel de usuario</h4>
+                
+                            </div>
+
+        </div>
+             
+             <div class="row">
+
+
+<a href="listed-books.php">
+<div class="col-md-4 col-sm-4 col-xs-6">
+ <div class="alert alert-success back-widget-set text-center">
+ <i class="fa fa-book fa-5x"></i>
+<?php 
+$sql ="SELECT id from tblbooks ";
+$query = $dbh -> prepare($sql);
+$query->execute();
+$results=$query->fetchAll(PDO::FETCH_OBJ);
+$listdbooks=$query->rowCount();
+?>
+<h3><?php echo htmlentities($listdbooks);?></h3>
+Lista de Libros
+</div></div></a>
+             
+               <div class="col-md-4 col-sm-4 col-xs-6">
+                      <div class="alert alert-warning back-widget-set text-center">
+                            <i class="fa fa-recycle fa-5x"></i>
+<?php 
+$rsts=0;
+ $sid=$_SESSION['stdid'];
+$sql2 ="SELECT id from tblissuedbookdetails where StudentID=:sid and (RetrunStatus=:rsts || RetrunStatus is null || RetrunStatus='')";
+$query2 = $dbh -> prepare($sql2);
+$query2->bindParam(':sid',$sid,PDO::PARAM_STR);
+$query2->bindParam(':rsts',$rsts,PDO::PARAM_STR);
+$query2->execute();
+$results2=$query2->fetchAll(PDO::FETCH_OBJ);
+$returnedbooks=$query2->rowCount();
+?>
+
+                            <h3><?php echo htmlentities($returnedbooks);?></h3>
+                          Libros No Regresados
+                        </div>
+                    </div>
+
+<?php 
+
+$ret =$dbh -> prepare("SELECT id from tblissuedbookdetails where StudentID=:sid");
+$ret->bindParam(':sid',$sid,PDO::PARAM_STR);
+$ret->execute();
+$results22=$ret->fetchAll(PDO::FETCH_OBJ);
+$totalissuedbook=$ret->rowCount();
+?>
+
+
+<a href="issued-books.php">
+<div class="col-md-4 col-sm-4 col-xs-6">
+ <div class="alert alert-success back-widget-set text-center">
+ <i class="fa fa-book fa-5x"></i>
+      <h3><?php echo htmlentities($totalissuedbook);?></h3>
+Total Issued Books
+</div></div></a>
+
+
+
+
+
+        </div>    
+    </div>
+    </div>
+     <!-- CONTENT-WRAPPER SECTION END-->
+<?php include('includes/footer.php');?>
+      <!-- FOOTER SECTION END-->
+    <!-- JAVASCRIPT FILES PLACED AT THE BOTTOM TO REDUCE THE LOADING TIME  -->
+    <!-- CORE JQUERY  -->
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS  -->
+    <script src="assets/js/bootstrap.js"></script>
+      <!-- CUSTOM SCRIPTS  -->
+    <script src="assets/js/custom.js"></script>
+</body>
+</html>
+<?php } ?>
+
+<?php
+session_start();
+error_reporting(0);
+include('includes/config.php');
+if($_SESSION['login']!=''){
+$_SESSION['login']='';
+}
+if(isset($_POST['login']))
+{
+
+$email=$_POST['emailid'];
+$password=md5($_POST['password']);
+$sql ="SELECT EmailId,Password,StudentId,Status FROM tblstudents WHERE EmailId=:email and Password=:password";
+$query= $dbh -> prepare($sql);
+$query-> bindParam(':email', $email, PDO::PARAM_STR);
+$query-> bindParam(':password', $password, PDO::PARAM_STR);
+$query-> execute();
+$results=$query->fetchAll(PDO::FETCH_OBJ);
+
+if($query->rowCount() > 0)
+{
+ foreach ($results as $result) {
+ $_SESSION['stdid']=$result->StudentId;
+if($result->Status==1)
+{
+$_SESSION['login']=$_POST['emailid'];
+echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
+} else {
+echo "<script>alert('Your Account Has been blocked .Please contact admin');</script>";
+
+}
+}
+
+} 
+
+else{
+echo "<script>alert('Invalid Details');</script>";
+}
+}
+
+?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Online Library Management System | </title>
+    <!-- BOOTSTRAP CORE STYLE  -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONT AWESOME STYLE  -->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLE  -->
+    <link href="assets/css/style.css" rel="stylesheet" />
+    <!-- GOOGLE FONT -->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+
+</head>
+<body>
+    <!------MENU SECTION START-->
+<?php include('includes/header.php');?>
+<!-- MENU SECTION END-->
+<div class="content-wrapper">
+<div class="container">
+<!--Slider---->
+     <div class="row">
+              <div class="col-md-10 col-sm-8 col-xs-12 col-md-offset-1">
+                    <div id="carousel-example" class="carousel slide slide-bdr" data-ride="carousel" >
+                    <div class="carousel-inner">
+                        <div class="item active">
+                            <img src="assets/img/entrada.jpg" alt="" />
+                        </div>
+                        <div class="item">
+                            <img src="assets/img/estantes.jpg" alt="" />
+                        </div>
+                        <div class="item">
+                            <img src="assets/img/libros.jpg" alt="" /> 
+                        </div>
+                    </div>
+                    <!--INDICATORS-->
+                     <ol class="carousel-indicators">
+                        <li data-target="#carousel-example" data-slide-to="0" class="active"></li>
+                        <li data-target="#carousel-example" data-slide-to="1"></li>
+                        <li data-target="#carousel-example" data-slide-to="2"></li>
+                    </ol>
+                    <!--PREVIUS-NEXT BUTTONS-->
+                     <a class="left carousel-control" href="#carousel-example" data-slide="prev">
+    <span class="glyphicon glyphicon-chevron-left"></span>
+  </a>
+  <a class="right carousel-control" href="#carousel-example" data-slide="next">
+    <span class="glyphicon glyphicon-chevron-right"></span>
+  </a>
+                </div>
+              </div>
+             </div>
+<hr />
+
+
+
+<div class="row pad-botm">
+<div class="col-md-12">
+<h4 class="header-line">FORMULARIO DE INICIO DE SESIÓN</h4>
+</div>
+</div>
+ <a name="ulogin"></a>            
+<!--LOGIN PANEL START-->           
+<div class="row">
+<div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3" >
+<div class="panel panel-info">
+<div class="panel-heading">
+ INICIO DE SESIÓN
+</div>
+<div class="panel-body">
+<form role="form" method="post">
+
+<div class="form-group">
+<label>Correo Electrónico </label>
+<input class="form-control" type="text" name="emailid" required autocomplete="off" />
+</div>
+<div class="form-group">
+<label>Contraseña</label>
+<input class="form-control" type="password" name="password" required autocomplete="off"  />
+<p class="help-block"><a href="user-forgot-password.php">Olvidé mi contraseña</a></p>
+</div>
+
+
+
+ <button type="submit" name="login" class="btn btn-info">ACCESO </button> | <a href="signup.php">No estoy registrado</a>
+</form>
+ </div>
+</div>
+</div>
+</div>  
+<!---LOGIN PABNEL END-->            
+             
+ 
+    </div>
+    </div>
+     <!-- CONTENT-WRAPPER SECTION END-->
+ <?php include('includes/footer.php');?>
+      <!-- FOOTER SECTION END-->
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS  -->
+    <script src="assets/js/bootstrap.js"></script>
+      <!-- CUSTOM SCRIPTS  -->
+    <script src="assets/js/custom.js"></script>
+
+</body>
+</html>
+
+<?php
+session_start();
+error_reporting(0);
+include('includes/config.php');
+if(strlen($_SESSION['login'])==0)
+    {   
+header('location:index.php');
+}
+else{ 
+
+
+
+    ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Online Library Management System |  Issued Books</title>
+    <!-- BOOTSTRAP CORE STYLE  -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONT AWESOME STYLE  -->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- DATATABLE STYLE  -->
+    <link href="assets/js/dataTables/dataTables.bootstrap.css" rel="stylesheet" />
+    <!-- CUSTOM STYLE  -->
+    <link href="assets/css/style.css" rel="stylesheet" />
+    <!-- GOOGLE FONT -->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+
+</head>
+<body>
+      <!------MENU SECTION START-->
+<?php include('includes/header.php');?>
+<!-- MENU SECTION END-->
+    <div class="content-wrapper">
+         <div class="container">
+        <div class="row pad-botm">
+            <div class="col-md-12">
+                <h4 class="header-line">LIBROS PRESTADOS </h4>
+    </div>
+    
+
+            <div class="row">
+                <div class="col-md-12">
+                    <!-- Advanced Tables -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                          Issued Books 
+                        </div>
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-example">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Nombre del Libro</th>
+                                            <th>ISBN </th>
+                                            <th>Fecha de Prestamo</th>
+                                            <th>Fecha de devolución</th>
+                                            <th>Sanción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+<?php 
+$sid=$_SESSION['stdid'];
+$sql="SELECT tblbooks.BookName,tblbooks.ISBNNumber,tblissuedbookdetails.IssuesDate,tblissuedbookdetails.ReturnDate,tblissuedbookdetails.id as rid,tblissuedbookdetails.fine from  tblissuedbookdetails join tblstudents on tblstudents.StudentId=tblissuedbookdetails.StudentId join tblbooks on tblbooks.id=tblissuedbookdetails.BookId where tblstudents.StudentId=:sid order by tblissuedbookdetails.id desc";
+$query = $dbh -> prepare($sql);
+$query-> bindParam(':sid', $sid, PDO::PARAM_STR);
+$query->execute();
+$results=$query->fetchAll(PDO::FETCH_OBJ);
+$cnt=1;
+if($query->rowCount() > 0)
+{
+foreach($results as $result)
+{               ?>                                      
+                                        <tr class="odd gradeX">
+                                            <td class="center"><?php echo htmlentities($cnt);?></td>
+                                            <td class="center"><?php echo htmlentities($result->BookName);?></td>
+                                            <td class="center"><?php echo htmlentities($result->ISBNNumber);?></td>
+                                            <td class="center"><?php echo htmlentities($result->IssuesDate);?></td>
+                                            <td class="center"><?php if($result->ReturnDate=="")
+                                            {?>
+                                            <span style="color:red">
+                                             <?php   echo htmlentities("Not Return Yet"); ?>
+                                                </span>
+                                            <?php } else {
+                                            echo htmlentities($result->ReturnDate);
+                                        }
+                                            ?></td>
+                                              <td class="center"><?php echo htmlentities($result->fine);?></td>
+                                         
+                                        </tr>
+ <?php $cnt=$cnt+1;}} ?>                                      
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <!--End Advanced Tables -->
+                </div>
+            </div>
+
+
+            
+    </div>
+    </div>
+    </div>
+
+     <!-- CONTENT-WRAPPER SECTION END-->
+  <?php include('includes/footer.php');?>
+      <!-- FOOTER SECTION END-->
+    <!-- JAVASCRIPT FILES PLACED AT THE BOTTOM TO REDUCE THE LOADING TIME  -->
+    <!-- CORE JQUERY  -->
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS  -->
+    <script src="assets/js/bootstrap.js"></script>
+    <!-- DATATABLE SCRIPTS  -->
+    <script src="assets/js/dataTables/jquery.dataTables.js"></script>
+    <script src="assets/js/dataTables/dataTables.bootstrap.js"></script>
+      <!-- CUSTOM SCRIPTS  -->
+    <script src="assets/js/custom.js"></script>
+
+</body>
+</html>
+<?php } ?>
+
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Jan 14, 2025 at 11:57 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `library`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `admin`
+--
+
+CREATE TABLE `admin` (
+  `id` int(11) NOT NULL,
+  `FullName` varchar(100) DEFAULT NULL,
+  `AdminEmail` varchar(120) DEFAULT NULL,
+  `UserName` varchar(100) NOT NULL,
+  `Password` varchar(100) NOT NULL,
+  `updationDate` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `admin`
+--
+
+INSERT INTO `admin` (`id`, `FullName`, `AdminEmail`, `UserName`, `Password`, `updationDate`) VALUES
+(1, 'Anuj Kumar', 'admin@gmail.com', 'admin', 'f925916e2754e5e03f75dd58a5733251', '2024-12-31 19:03:56');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblauthors`
+--
+
+CREATE TABLE `tbl` (
+  `id` int(11) NOT NULL,
+  `AuthorName` varchar(159) DEFAULT NULL,
+  `creationDate` timestamp NULL DEFAULT current_timestamp(),
+  `UpdationDate` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `tblauthors`
+--
+
+INSERT INTO `tblauthors` (`id`, `AuthorName`, `creationDate`, `UpdationDate`) VALUES
+(1, 'Anuj kumar', '2023-12-31 21:23:03', '2025-01-07 06:18:43'),
+(2, 'Chetan Bhagatt', '2023-12-31 21:23:03', '2025-01-07 06:18:50'),
+(3, 'Anita Desai', '2023-12-31 21:23:03', '2025-01-07 06:18:50'),
+(4, 'HC Verma', '2023-12-31 21:23:03', '2025-01-07 06:18:50'),
+(5, 'R.D. Sharma ', '2023-12-31 21:23:03', '2025-01-07 06:18:50'),
+(9, 'fwdfrwer', '2023-12-31 21:23:03', '2025-01-07 06:18:50'),
+(10, 'Dr. Andy Williams', '2023-12-31 21:23:03', '2025-01-07 06:18:50'),
+(11, 'Kyle Hill', '2023-12-31 21:23:03', '2025-01-07 06:18:50'),
+(12, 'Robert T. Kiyosak', '2023-12-31 21:23:03', '2025-01-07 06:18:50'),
+(13, 'Kelly Barnhill', '2023-12-31 21:23:03', '2025-01-07 06:18:50'),
+(14, 'Herbert Schildt', '2023-12-31 21:23:03', '2025-01-07 06:18:50'),
+(16, ' Tiffany Timbers', '2025-01-07 06:55:54', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblbooks`
+--
+
+CREATE TABLE `tblbooks` (
+  `id` int(11) NOT NULL,
+  `BookName` varchar(255) DEFAULT NULL,
+  `CatId` int(11) DEFAULT NULL,
+  `AuthorId` int(11) DEFAULT NULL,
+  `ISBNNumber` varchar(25) DEFAULT NULL,
+  `BookPrice` decimal(10,2) DEFAULT NULL,
+  `bookImage` varchar(250) NOT NULL,
+  `isIssued` int(1) DEFAULT NULL,
+  `RegDate` timestamp NULL DEFAULT current_timestamp(),
+  `UpdationDate` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  `bookQty` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `tblbooks`
+--
+
+INSERT INTO `tblbooks` (`id`, `BookName`, `CatId`, `AuthorId`, `ISBNNumber`, `BookPrice`, `bookImage`, `isIssued`, `RegDate`, `UpdationDate`, `bookQty`) VALUES
+(1, 'PHP And MySql programming', 5, 1, '222333', 20.00, '1efecc0ca822e40b7b673c0d79ae943f.jpg', 0, '2024-01-02 01:23:03', '2025-01-14 07:08:11', 10),
+(3, 'physics', 6, 4, '1111', 15.00, 'dd8267b57e0e4feee5911cb1e1a03a79.jpg', NULL, '2024-01-02 01:23:03', '2025-01-13 11:11:01', 10),
+(5, 'Murach\'s MySQL', 5, 1, '9350237695', 455.00, '5939d64655b4d2ae443830d73abc35b6.jpg', NULL, '2024-01-02 01:23:03', '2025-01-13 11:11:01', 20),
+(6, 'WordPress for Beginners 2022: A Visual Step-by-Step Guide to Mastering WordPress', 5, 10, 'B019MO3WCM', 100.00, '144ab706ba1cb9f6c23fd6ae9c0502b3.jpg', NULL, '2024-01-02 01:23:03', '2025-01-13 11:05:35', 15),
+(7, 'WordPress Mastery Guide:', 5, 11, 'B09NKWH7NP', 53.00, '90083a56014186e88ffca10286172e64.jpg', NULL, '2024-01-02 01:23:03', '2025-01-13 11:05:39', 14),
+(8, 'Rich Dad Poor Dad: What the Rich Teach Their Kids About Money That the Poor and Middle Class Do Not', 8, 12, 'B07C7M8SX9', 120.00, '52411b2bd2a6b2e0df3eb10943a5b640.jpg', NULL, '2024-01-02 01:23:03', '2025-01-13 11:05:41', 5),
+(9, 'The Girl Who Drank the Moon', 8, 13, '1848126476', 200.00, 'f05cd198ac9335245e1fdffa793207a7.jpg', NULL, '2024-01-02 01:23:03', '2025-01-13 11:05:45', 1),
+(10, 'C++: The Complete Reference, 4th Edition', 5, 14, '007053246X', 142.00, '36af5de9012bf8c804e499dc3c3b33a5.jpg', NULL, '2024-01-02 01:23:03', '2025-01-13 11:11:01', 2),
+(11, 'ASP.NET Core 5 for Beginners', 9, 11, 'GBSJ36344563', 422.00, 'b1b6788016bbfab12cfd2722604badc9.jpg', NULL, '2024-01-02 01:23:03', '2025-01-13 11:11:01', 5),
+(12, 'Python Packages', 9, 16, '0367687771', 3034.00, 'ba719639def504c64ebac89cdd0d0a85.jpg', NULL, '2025-01-07 06:56:50', NULL, 25);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblcategory`
+--
+
+CREATE TABLE `tblcategory` (
+  `id` int(11) NOT NULL,
+  `CategoryName` varchar(150) DEFAULT NULL,
+  `Status` int(1) DEFAULT NULL,
+  `CreationDate` timestamp NULL DEFAULT current_timestamp(),
+  `UpdationDate` timestamp NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `tblcategory`
+--
+
+INSERT INTO `tblcategory` (`id`, `CategoryName`, `Status`, `CreationDate`, `UpdationDate`) VALUES
+(4, 'Romantic', 1, '2025-01-01 07:23:03', '2025-01-07 06:19:11'),
+(5, 'Technology', 1, '2025-01-01 07:23:03', '2025-01-07 06:19:21'),
+(6, 'Science', 1, '2025-01-01 07:23:03', '2025-01-07 06:19:21'),
+(7, 'Management', 1, '2025-01-01 07:23:03', '2025-01-07 06:19:21'),
+(8, 'General', 1, '2025-01-01 07:23:03', '2025-01-07 06:19:21'),
+(9, 'Programming', 1, '2025-01-01 07:23:03', '2025-01-07 06:19:21');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblissuedbookdetails`
+--
+
+CREATE TABLE `tblissuedbookdetails` (
+  `id` int(11) NOT NULL,
+  `BookId` int(11) DEFAULT NULL,
+  `StudentID` varchar(150) DEFAULT NULL,
+  `IssuesDate` timestamp NULL DEFAULT current_timestamp(),
+  `ReturnDate` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  `RetrunStatus` int(1) DEFAULT NULL,
+  `fine` int(11) DEFAULT NULL,
+  `remark` mediumtext NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `tblissuedbookdetails`
+--
+
+INSERT INTO `tblissuedbookdetails` (`id`, `BookId`, `StudentID`, `IssuesDate`, `ReturnDate`, `RetrunStatus`, `fine`, `remark`) VALUES
+(1, 1, 'SID002', '2025-01-13 11:12:40', '2025-01-14 06:00:56', 1, 0, 'NA'),
+(2, 7, 'SID010', '2025-01-14 05:55:25', NULL, NULL, NULL, 'NA'),
+(3, 1, 'SID010', '2025-01-14 05:55:39', NULL, NULL, NULL, 'NA'),
+(5, 1, 'SID002', '2025-01-14 06:02:14', '2025-01-14 06:03:36', 1, 0, 'ds');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblstudents`
+--
+
+CREATE TABLE `tblstudents` (
+  `id` int(11) NOT NULL,
+  `StudentId` varchar(100) DEFAULT NULL,
+  `FullName` varchar(120) DEFAULT NULL,
+  `EmailId` varchar(120) DEFAULT NULL,
+  `MobileNumber` char(11) DEFAULT NULL,
+  `Password` varchar(120) DEFAULT NULL,
+  `Status` int(1) DEFAULT NULL,
+  `RegDate` timestamp NULL DEFAULT current_timestamp(),
+  `UpdationDate` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `tblstudents`
+--
+
+INSERT INTO `tblstudents` (`id`, `StudentId`, `FullName`, `EmailId`, `MobileNumber`, `Password`, `Status`, `RegDate`, `UpdationDate`) VALUES
+(1, 'SID002', 'Anuj kumar', 'anujk@gmail.com', '9865472555', 'f925916e2754e5e03f75dd58a5733251', 1, '2024-01-03 07:23:03', '2025-01-07 06:20:27'),
+(4, 'SID005', 'sdfsd', 'csfsd@dfsfks.com', '8569710025', '92228410fc8b872914e023160cf4ae8f', 1, '2024-01-03 07:23:03', '2025-01-07 06:20:36'),
+(8, 'SID009', 'test', 'test@gmail.com', '2359874527', 'f925916e2754e5e03f75dd58a5733251', 1, '2024-01-03 07:23:03', '2025-01-07 06:20:36'),
+(9, 'SID010', 'Amit', 'amit@gmail.com', '8585856224', 'f925916e2754e5e03f75dd58a5733251', 1, '2024-01-03 07:23:03', '2025-01-07 06:20:36'),
+(10, 'SID011', 'Sarita Pandey', 'sarita@gmail.com', '4672423754', 'f925916e2754e5e03f75dd58a5733251', 1, '2024-01-03 07:23:03', '2025-01-07 06:20:36'),
+(11, 'SID012', 'John Doe', 'john@test.com', '1234569870', 'f925916e2754e5e03f75dd58a5733251', 1, '2024-01-03 07:23:03', '2025-01-07 06:20:36');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `admin`
+--
+ALTER TABLE `admin`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `tblauthors`
+--
+ALTER TABLE `tblauthors`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `tblbooks`
+--
+ALTER TABLE `tblbooks`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `tblcategory`
+--
+ALTER TABLE `tblcategory`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `tblissuedbookdetails`
+--
+ALTER TABLE `tblissuedbookdetails`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `tblstudents`
+--
+ALTER TABLE `tblstudents`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `StudentId` (`StudentId`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `admin`
+--
+ALTER TABLE `admin`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `tblauthors`
+--
+ALTER TABLE `tblauthors`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
+-- AUTO_INCREMENT for table `tblbooks`
+--
+ALTER TABLE `tblbooks`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `tblcategory`
+--
+ALTER TABLE `tblcategory`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT for table `tblissuedbookdetails`
+--
+ALTER TABLE `tblissuedbookdetails`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `tblstudents`
+--
+ALTER TABLE `tblstudents`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+<?php
+session_start();
+error_reporting(0);
+include('includes/config.php');
+if(strlen($_SESSION['login'])==0)
+    {   
+header('location:index.php');
+}
+else{ 
+
+
+
+    ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Online Library Management System |  Issued Books</title>
+    <!-- BOOTSTRAP CORE STYLE  -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONT AWESOME STYLE  -->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- DATATABLE STYLE  -->
+    <link href="assets/js/dataTables/dataTables.bootstrap.css" rel="stylesheet" />
+    <!-- CUSTOM STYLE  -->
+    <link href="assets/css/style.css" rel="stylesheet" />
+    <!-- GOOGLE FONT -->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+
+</head>
+<body>
+      <!------MENU SECTION START-->
+<?php include('includes/header.php');?>
+<!-- MENU SECTION END-->
+    <div class="content-wrapper">
+         <div class="container">
+        <div class="row pad-botm">
+            <div class="col-md-12">
+                <h4 class="header-line"><h4 class="header-line">LIBROS DISPONIBLES</h4></h4>
+    </div>
+    
+
+            <div class="row">
+                <div class="col-md-12">
+                    <!-- Advanced Tables -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                          Libros Disponibles 
+                        </div>
+                        <div class="panel-body">
+                       
+
+<?php $sql = "SELECT tblbooks.BookName,tblcategory.CategoryName,tblauthors.AuthorName,tblbooks.ISBNNumber,tblbooks.BookPrice,tblbooks.id as bookid,tblbooks.bookImage,tblbooks.isIssued,tblbooks.bookQty,  
+               COUNT(tblissuedbookdetails.id) AS issuedBooks,
+   COUNT(tblissuedbookdetails.RetrunStatus) AS returnedbook
+
+        FROM tblbooks
+        LEFT JOIN tblissuedbookdetails ON tblissuedbookdetails.BookId = tblbooks.id
+        LEFT JOIN tblauthors ON tblauthors.id = tblbooks.AuthorId
+        Left join tblcategory on tblcategory.id=tblbooks.CatId
+        GROUP BY tblbooks.id";
+$query = $dbh -> prepare($sql);
+$query->execute();
+$results=$query->fetchAll(PDO::FETCH_OBJ);
+$cnt=1;
+if($query->rowCount() > 0)
+{
+foreach($results as $result)
+{               ?>  
+
+    <div class="col-md-4" style="height:350px;">
+
+  <table class="table table-bordered">
+
+     <tr>
+        <td rowspan="2"><img src="admin/bookimg/<?php echo htmlentities($result->bookImage);?>" width="120"></td>
+        <th>Nombre del Libro</th>
+        <td><?php echo htmlentities($result->BookName);?></td>
+    </tr>
+    <tr>
+        <th>Author</th>
+        <td><?php echo htmlentities($result->AuthorName);?></td>
+    </tr>
+      <tr>
+        <th>ISBN</th>
+        <td colspan="2"><?php echo htmlentities($result->ISBNNumber);?></td>
+    </tr>
+       <tr>
+        <th> Cantidad</th>
+        <td colspan="2"><?php echo htmlentities($result->bookQty);?></td>
+    </tr>
+     <tr>
+        <th> Libros disponibles</th>
+        <td colspan="2"><?php if ($result->issuedBooks == 0) {
+        echo htmlentities($result->bookQty);
+    } else{
+ echo htmlentities($result->bookQty-($result->issuedBooks-$result->returnedbook));
+    }?></td>
+    </tr>
+</table>
+                                   
+                                        
+
+      
+                            </div>
+           
+
+                                <?php $cnt=$cnt+1;}} ?>  
+                      
+                            
+                        </div>
+                    </div>
+                    <!--End Advanced Tables -->
+                </div>
+            </div>
+
+
+            
+    </div>
+    </div>
+    </div>
+
+     <!-- CONTENT-WRAPPER SECTION END-->
+  <?php include('includes/footer.php');?>
+      <!-- FOOTER SECTION END-->
+    <!-- JAVASCRIPT FILES PLACED AT THE BOTTOM TO REDUCE THE LOADING TIME  -->
+    <!-- CORE JQUERY  -->
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS  -->
+    <script src="assets/js/bootstrap.js"></script>
+    <!-- DATATABLE SCRIPTS  -->
+    <script src="assets/js/dataTables/jquery.dataTables.js"></script>
+    <script src="assets/js/dataTables/dataTables.bootstrap.js"></script>
+      <!-- CUSTOM SCRIPTS  -->
+    <script src="assets/js/custom.js"></script>
+
+</body>
+</html>
+<?php } ?>
+
+<?php
+session_start(); 
+session_destroy(); // destroy session
+header("location:index.php"); 
+?>
+
+
+<?php 
+session_start();
+include('includes/config.php');
+error_reporting(0);
+if(strlen($_SESSION['login'])==0)
+    {   
+header('location:index.php');
+}
+else{ 
+if(isset($_POST['update']))
+{    
+$sid=$_SESSION['stdid'];  
+$fname=$_POST['fullanme'];
+$mobileno=$_POST['mobileno'];
+
+$sql="update tblstudents set FullName=:fname,MobileNumber=:mobileno where StudentId=:sid";
+$query = $dbh->prepare($sql);
+$query->bindParam(':sid',$sid,PDO::PARAM_STR);
+$query->bindParam(':fname',$fname,PDO::PARAM_STR);
+$query->bindParam(':mobileno',$mobileno,PDO::PARAM_STR);
+$query->execute();
+
+echo '<script>alert("Your profile has been updated")</script>';
+}
+
+?>
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <!--[if IE]>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <![endif]-->
+    <title>Online Library Management System | Student Signup</title>
+    <!-- BOOTSTRAP CORE STYLE  -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONT AWESOME STYLE  -->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLE  -->
+    <link href="assets/css/style.css" rel="stylesheet" />
+    <!-- GOOGLE FONT -->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' /> 
+
+</head>
+<body>
+    <!------MENU SECTION START-->
+<?php include('includes/header.php');?>
+<!-- MENU SECTION END-->
+    <div class="content-wrapper">
+         <div class="container">
+        <div class="row pad-botm">
+            <div class="col-md-12">
+                <h4 class="header-line">Mi perfil</h4>
+                
+                            </div>
+
+        </div>
+             <div class="row">
+           
+<div class="col-md-9 col-md-offset-1">
+               <div class="panel panel-danger">
+                        <div class="panel-heading">
+                           My Profile
+                        </div>
+                        <div class="panel-body">
+                            <form name="signup" method="post">
+<?php 
+$sid=$_SESSION['stdid'];
+$sql="SELECT StudentId,FullName,EmailId,MobileNumber,RegDate,UpdationDate,Status from  tblstudents  where StudentId=:sid ";
+$query = $dbh -> prepare($sql);
+$query-> bindParam(':sid', $sid, PDO::PARAM_STR);
+$query->execute();
+$results=$query->fetchAll(PDO::FETCH_OBJ);
+$cnt=1;
+if($query->rowCount() > 0)
+{
+foreach($results as $result)
+{               ?>  
+
+<div class="form-group">
+<label>Student ID : </label>
+<?php echo htmlentities($result->StudentId);?>
+</div>
+
+<div class="form-group">
+<label>Reg Date : </label>
+<?php echo htmlentities($result->RegDate);?>
+</div>
+<?php if($result->UpdationDate!=""){?>
+<div class="form-group">
+<label>Last Updation Date : </label>
+<?php echo htmlentities($result->UpdationDate);?>
+</div>
+<?php } ?>
+
+
+<div class="form-group">
+<label>Profile Status : </label>
+<?php if($result->Status==1){?>
+<span style="color: green">Active</span>
+<?php } else { ?>
+<span style="color: red">Blocked</span>
+<?php }?>
+</div>
+
+
+<div class="form-group">
+<label>Enter Full Name</label>
+<input class="form-control" type="text" name="fullanme" value="<?php echo htmlentities($result->FullName);?>" autocomplete="off" required />
+</div>
+
+
+<div class="form-group">
+<label>Mobile Number :</label>
+<input class="form-control" type="text" name="mobileno" maxlength="10" value="<?php echo htmlentities($result->MobileNumber);?>" autocomplete="off" required />
+</div>
+                                        
+<div class="form-group">
+<label>Enter Email</label>
+<input class="form-control" type="email" name="email" id="emailid" value="<?php echo htmlentities($result->EmailId);?>"  autocomplete="off" required readonly />
+</div>
+<?php }} ?>
+                              
+<button type="submit" name="update" class="btn btn-primary" id="submit">Update Now </button>
+
+                                    </form>
+                            </div>
+                        </div>
+                            </div>
+        </div>
+    </div>
+    </div>
+     <!-- CONTENT-WRAPPER SECTION END-->
+    <?php include('includes/footer.php');?>
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS  -->
+    <script src="assets/js/bootstrap.js"></script>
+      <!-- CUSTOM SCRIPTS  -->
+    <script src="assets/js/custom.js"></script>
+</body>
+</html>
+<?php } ?>
+
+****How to run the Library Management System Project****
+
+1. Download and Unzip file on your local system copy library
+2. Put library folder inside�root directory
+
+Database Configuration
+
+Open phpmyadmin
+Create Database�library
+Import database library.sql (available inside zip package)
+
+For User
+
+Open Your browser put inside browser �http://localhost/library�
+
+***************************Login Details for user***************************
+Username: test@gmail.com
+Password: Test@123
+
+For Admin Panel
+
+Open Your browser put inside browser �http://localhost/library/admin�
+
+***************************Login Details for admin***************************�
+Username: admin
+Password: Test@123
+
+
+
+<?php 
+session_start();
+include('includes/config.php');
+error_reporting(0);
+if(isset($_POST['signup']))
+{
+ 
+//Code for student ID
+$count_my_page = ("studentid.txt");
+$hits = file($count_my_page);
+$hits[0] ++;
+$fp = fopen($count_my_page , "w");
+fputs($fp , "$hits[0]");
+fclose($fp); 
+$StudentId= $hits[0];   
+$fname=$_POST['fullanme'];
+$mobileno=$_POST['mobileno'];
+$email=$_POST['email']; 
+$password=md5($_POST['password']); 
+$status=1;
+$sql="INSERT INTO  tblstudents(StudentId,FullName,MobileNumber,EmailId,Password,Status) VALUES(:StudentId,:fname,:mobileno,:email,:password,:status)";
+$query = $dbh->prepare($sql);
+$query->bindParam(':StudentId',$StudentId,PDO::PARAM_STR);
+$query->bindParam(':fname',$fname,PDO::PARAM_STR);
+$query->bindParam(':mobileno',$mobileno,PDO::PARAM_STR);
+$query->bindParam(':email',$email,PDO::PARAM_STR);
+$query->bindParam(':password',$password,PDO::PARAM_STR);
+$query->bindParam(':status',$status,PDO::PARAM_STR);
+$query->execute();
+$lastInsertId = $dbh->lastInsertId();
+if($lastInsertId)
+{
+echo '<script>alert("Your Registration successfull and your student id is  "+"'.$StudentId.'")</script>';
+}
+else 
+{
+echo "<script>alert('Something went wrong. Please try again');</script>";
+}
+}
+
+?>
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <!--[if IE]>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <![endif]-->
+    <title>Online Library Management System | Student Signup</title>
+    <!-- BOOTSTRAP CORE STYLE  -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONT AWESOME STYLE  -->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLE  -->
+    <link href="assets/css/style.css" rel="stylesheet" />
+    <!-- GOOGLE FONT -->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+<script type="text/javascript">
+function valid()
+{
+if(document.signup.password.value!= document.signup.confirmpassword.value)
+{
+alert("Password and Confirm Password Field do not match  !!");
+document.signup.confirmpassword.focus();
+return false;
+}
+return true;
+}
+</script>
+<script>
+function checkAvailability() {
+$("#loaderIcon").show();
+jQuery.ajax({
+url: "check_availability.php",
+data:'emailid='+$("#emailid").val(),
+type: "POST",
+success:function(data){
+$("#user-availability-status").html(data);
+$("#loaderIcon").hide();
+},
+error:function (){}
+});
+}
+</script>    
+
+</head>
+<body>
+    <!------MENU SECTION START-->
+<?php include('includes/header.php');?>
+<!-- MENU SECTION END-->
+    <div class="content-wrapper">
+         <div class="container">
+        <div class="row pad-botm">
+            <div class="col-md-12">
+                <h4 class="header-line">Registro de usuario</h4>
+                
+                            </div>
+
+        </div>
+             <div class="row">
+           
+<div class="col-md-9 col-md-offset-1">
+               <div class="panel panel-danger">
+                        <div class="panel-heading">
+                           FORMULARIO DE INSCRIPCIÓN
+                        </div>
+                        <div class="panel-body">
+                            <form name="signup" method="post" onSubmit="return valid();">
+<div class="form-group">
+<label>Nombre Completo</label>
+<input class="form-control" type="text" name="fullanme" autocomplete="off" required />
+</div>
+
+
+<div class="form-group">
+<label>Número de Celular :</label>
+<input class="form-control" type="text" name="mobileno" maxlength="10" autocomplete="off" required />
+</div>
+                                        
+<div class="form-group">
+<label>Correo Electrónico</label>
+<input class="form-control" type="email" name="email" id="emailid" onBlur="checkAvailability()"  autocomplete="off" required  />
+   <span id="user-availability-status" style="font-size:12px;"></span> 
+</div>
+
+<div class="form-group">
+<label>Contraseña</label>
+<input class="form-control" type="password" name="password" autocomplete="off" required  />
+</div>
+
+<div class="form-group">
+<label>Confirmar Contraseña </label>
+<input class="form-control"  type="password" name="confirmpassword" autocomplete="off" required  />
+</div>
+                             
+<button type="submit" name="signup" class="btn btn-danger" id="submit">Registrar </button>
+
+                                    </form>
+                            </div>
+                        </div>
+                            </div>
+        </div>
+    </div>
+    </div>
+     <!-- CONTENT-WRAPPER SECTION END-->
+    <?php include('includes/footer.php');?>
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS  -->
+    <script src="assets/js/bootstrap.js"></script>
+      <!-- CUSTOM SCRIPTS  -->
+    <script src="assets/js/custom.js"></script>
+</body>
+</html>
+
+SID014
+<?php
+session_start();
+error_reporting(0);
+include('includes/config.php');
+if(isset($_POST['change']))
+{
+$email=$_POST['email'];
+$mobile=$_POST['mobile'];
+$newpassword=md5($_POST['newpassword']);
+  $sql ="SELECT EmailId FROM tblstudents WHERE EmailId=:email and MobileNumber=:mobile";
+$query= $dbh -> prepare($sql);
+$query-> bindParam(':email', $email, PDO::PARAM_STR);
+$query-> bindParam(':mobile', $mobile, PDO::PARAM_STR);
+$query-> execute();
+$results = $query -> fetchAll(PDO::FETCH_OBJ);
+if($query -> rowCount() > 0)
+{
+$con="update tblstudents set Password=:newpassword where EmailId=:email and MobileNumber=:mobile";
+$chngpwd1 = $dbh->prepare($con);
+$chngpwd1-> bindParam(':email', $email, PDO::PARAM_STR);
+$chngpwd1-> bindParam(':mobile', $mobile, PDO::PARAM_STR);
+$chngpwd1-> bindParam(':newpassword', $newpassword, PDO::PARAM_STR);
+$chngpwd1->execute();
+echo "<script>alert('Your Password succesfully changed');</script>";
+}
+else {
+echo "<script>alert('Email id or Mobile no is invalid');</script>"; 
+}
+}
+?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Online Library Management System | Password Recovery </title>
+    <!-- BOOTSTRAP CORE STYLE  -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONT AWESOME STYLE  -->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLE  -->
+    <link href="assets/css/style.css" rel="stylesheet" />
+    <!-- GOOGLE FONT -->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+     <script type="text/javascript">
+function valid()
+{
+if(document.chngpwd.newpassword.value!= document.chngpwd.confirmpassword.value)
+{
+alert("New Password and Confirm Password Field do not match  !!");
+document.chngpwd.confirmpassword.focus();
+return false;
+}
+return true;
+}
+</script>
+
+</head>
+<body>
+    <!------MENU SECTION START-->
+<?php include('includes/header.php');?>
+<!-- MENU SECTION END-->
+<div class="content-wrapper">
+<div class="container">
+<div class="row pad-botm">
+<div class="col-md-12">
+<h4 class="header-line">Recuperación de contraseña</h4>
+</div>
+</div>
+             
+<!--LOGIN PANEL START-->           
+<div class="row">
+<div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3" >
+<div class="panel panel-info">
+<div class="panel-heading">
+INICIO DE SESIÓN
+</div>
+<div class="panel-body">
+<form role="form" name="chngpwd" method="post" onSubmit="return valid();">
+
+<div class="form-group">
+<label>Enter Reg Email id</label>
+<input class="form-control" type="email" name="email" required autocomplete="off" />
+</div>
+
+<div class="form-group">
+<label>Enter Reg Mobile No</label>
+<input class="form-control" type="text" name="mobile" required autocomplete="off" />
+</div>
+
+<div class="form-group">
+<label>Password</label>
+<input class="form-control" type="password" name="newpassword" required autocomplete="off"  />
+</div>
+
+<div class="form-group">
+<label>ConfirmPassword</label>
+<input class="form-control" type="password" name="confirmpassword" required autocomplete="off"  />
+</div>
+
+
+ <button type="submit" name="change" class="btn btn-info">Chnage Password</button> | <a href="index.php">Login</a>
+</form>
+ </div>
+</div>
+</div>
+</div>  
+<!---LOGIN PABNEL END-->            
+             
+ 
+    </div>
+    </div>
+     <!-- CONTENT-WRAPPER SECTION END-->
+ <?php include('includes/footer.php');?>
+      <!-- FOOTER SECTION END-->
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS  -->
+    <script src="assets/js/bootstrap.js"></script>
+      <!-- CUSTOM SCRIPTS  -->
+    <script src="assets/js/custom.js"></script>
+
+</body>
+</html>
